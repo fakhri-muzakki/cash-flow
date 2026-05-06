@@ -1,0 +1,49 @@
+
+
+Backend (Golang + Gin):
+- gin-gonic/gin
+- gorm
+- golang-jwt/jwt
+- bcrypt
+- joho/godotenv
+- golang-migrate/migrate
+
+
+Frontend (Next.js 15 + React 19):
+- Next js 
+- React
+- react-hook-form + zod
+- shadcn
+- TanStack Query v5 
+- date-fns (pertimbangkan)
+
+
+Layered architecture
+
+
+
+Tahapan pengerjakan
+# Setup awal
+chore/project-setup          # Init Next.js, Go module, folder structure, env
+
+# Backend dulu, frontend menyusul per fitur
+chore/database-setup         # Schema migration, koneksi DB
+
+feat/auth-backend            # Register, login, JWT, middleware
+feat/auth-frontend           # Halaman login/register, store token, protected route
+
+feat/transaction-backend     # CRUD income & expense + update balance (atomic)
+feat/transaction-frontend    # Form tambah, list, edit, delete
+
+feat/filter-backend          # Query filter by hari/minggu/bulan/tahun/tanggal
+feat/filter-frontend         # UI filter + integrasi TanStack Query
+
+feat/dashboard               # Halaman overview, summary saldo, ringkasan
+
+chore/cleanup                # Refactor, hapus dead code, konsistensi naming
+
+Claude
+https://claude.ai/chat/c88d492e-9551-4771-b182-7b10714d599e
+
+https://tembuskerja.com/course
+https://docs.google.com/document/d/1UsJuJsyZc9st_mRwtynl70zMXJXp_uRpXhvR01X1sRU/edit?tab=t.0
