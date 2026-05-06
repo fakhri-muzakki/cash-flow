@@ -47,3 +47,47 @@ https://claude.ai/chat/c88d492e-9551-4771-b182-7b10714d599e
 
 https://tembuskerja.com/course
 https://docs.google.com/document/d/1UsJuJsyZc9st_mRwtynl70zMXJXp_uRpXhvR01X1sRU/edit?tab=t.0
+
+
+
+
+Schema database
+============================================================
+-- Users
+CREATE TABLE users (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email       VARCHAR(255) NOT NULL UNIQUE,
+  name        VARCHAR(255) NOT NULL,
+  password    VARCHAR(255) NOT NULL,
+  balance     NUMERIC(15,2) NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Transactions (pengeluaran & pendapatan dijadikan satu tabel)
+CREATE TABLE transactions (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type        VARCHAR(7) NOT NULL CHECK (type IN ('income', 'expense')),
+  amount      NUMERIC(15,2) NOT NULL CHECK (amount > 0),
+  note        TEXT,
+  date        DATE NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_transactions_user_id ON transactions(user_id);
+CREATE INDEX idx_transactions_date    ON transactions(date);
+CREATE INDEX idx_transactions_type    ON transactions(type);
+
+
+Halaman 
+============================================================
+/login
+/register
+/
+
+
+
+Halaman 
+============================================================
