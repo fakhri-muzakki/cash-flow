@@ -22,6 +22,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/authStore";
 
 const registerSchema = z
   .object({
@@ -40,6 +43,8 @@ const registerSchema = z
 type RegisterValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const { setAuth, setIsLoading } = useAuthStore();
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -51,7 +56,37 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (values: RegisterValues) => {
-    console.log(values);
+    try {
+      setIsLoading(true);
+
+      const response = await fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Registrasi gagal");
+      }
+
+      // Simpan ke Zustand store (otomatis ke localStorage karena persist middleware)
+      setAuth(data.token, data.user);
+
+      toast.success("Registrasi berhasil! Selamat datang.");
+      router.push("/dashboard");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Registrasi gagal");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

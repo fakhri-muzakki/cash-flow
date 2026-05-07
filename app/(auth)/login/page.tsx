@@ -22,6 +22,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useAuthStore } from "@/stores/authStore";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email("Email tidak valid"),
@@ -31,6 +34,9 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { setAuth, setIsLoading } = useAuthStore();
+
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -40,7 +46,34 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: LoginValues) => {
-    console.log(values);
+    try {
+      setIsLoading(true);
+
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login gagal");
+      }
+
+      setAuth(data.token, data.user);
+      toast.success("Login berhasil!");
+      router.push("/dashboard");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Login gagal");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

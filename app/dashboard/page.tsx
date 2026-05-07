@@ -2,15 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Plus,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  Filter,
-  Edit2,
-  Trash2,
-} from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Calendar, Filter } from "lucide-react";
 import {
   format,
   startOfWeek,
@@ -21,21 +13,11 @@ import {
   endOfYear,
 } from "date-fns";
 import { id } from "date-fns/locale";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 
 // shadcn/ui components
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import {
   Select,
   SelectContent,
@@ -51,247 +33,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DatePicker } from "@/components/date-picker";
-
-// Types
-type TransactionType = "income" | "expense";
-
-interface Transaction {
-  id: string;
-  type: TransactionType;
-  amount: number;
-  note: string;
-  date: string;
-}
+import type { Transaction, TransactionType } from "./type";
+import TransactionItem from "./components/TransactionItem";
+import TransactionFormModal from "./components/TransactionFormModal";
 
 type FilterType = "today" | "thisWeek" | "thisMonth" | "thisYear" | "custom";
 
 // Zod Schema untuk form transaksi
-const transactionSchema = z.object({
-  amount: z
-    .string()
-    .min(1, "Nominal harus diisi")
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Nominal harus berupa angka positif",
-    }),
-  note: z
-    .string()
-    .min(1, "Catatan harus diisi")
-    .max(100, "Catatan maksimal 100 karakter"),
-  date: z.string().min(1, "Tanggal harus diisi"),
-});
-
-type TransactionFormData = z.infer<typeof transactionSchema>;
-
-// Transaction Form Modal Component
-function TransactionFormModal({
-  isOpen,
-  onClose,
-  onSubmit,
-  type,
-  editingTransaction,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: { amount: number; note: string; date: string }) => void;
-  type: TransactionType;
-  editingTransaction?: Transaction | null;
-}) {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<TransactionFormData>({
-    resolver: zodResolver(transactionSchema),
-    defaultValues: {
-      amount: "",
-      note: "",
-      date: format(new Date(), "yyyy-MM-dd"),
-    },
-  });
-
-  useEffect(() => {
-    if (editingTransaction) {
-      reset({
-        amount: editingTransaction.amount.toString(),
-        note: editingTransaction.note,
-        date: editingTransaction.date,
-      });
-    } else {
-      reset({
-        amount: "",
-        note: "",
-        date: format(new Date(), "yyyy-MM-dd"),
-      });
-    }
-  }, [editingTransaction, reset, isOpen]);
-
-  const onFormSubmit = (data: TransactionFormData) => {
-    onSubmit({
-      amount: parseFloat(data.amount),
-      note: data.note,
-      date: data.date,
-    });
-    reset();
-    onClose();
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {editingTransaction ? "Edit" : "Tambah"}{" "}
-            {type === "income" ? "Pendapatan" : "Pengeluaran"}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="amount">Nominal (Rp)</Label>
-            <Input
-              id="amount"
-              type="number"
-              placeholder="0"
-              {...register("amount")}
-              className={errors.amount ? "border-red-500" : ""}
-            />
-            {errors.amount && (
-              <p className="text-sm text-red-500">{errors.amount.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="note">Catatan</Label>
-            <Input
-              id="note"
-              placeholder="Misal: Gaji, Makan Siang, dll"
-              {...register("note")}
-              className={errors.note ? "border-red-500" : ""}
-            />
-            {errors.note && (
-              <p className="text-sm text-red-500">{errors.note.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="date">Tanggal</Label>
-            <Input
-              id="date"
-              type="date"
-              {...register("date")}
-              className={errors.date ? "border-red-500" : ""}
-            />
-            {errors.date && (
-              <p className="text-sm text-red-500">{errors.date.message}</p>
-            )}
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Batal
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className={`flex-1 ${
-                type === "income"
-                  ? "bg-emerald-600 hover:bg-emerald-700"
-                  : "bg-rose-600 hover:bg-rose-700"
-              }`}
-            >
-              {isSubmitting
-                ? "Menyimpan..."
-                : editingTransaction
-                  ? "Simpan Perubahan"
-                  : type === "income"
-                    ? "Tambah Pendapatan"
-                    : "Tambah Pengeluaran"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Transaction Item Component
-function TransactionItem({
-  transaction,
-  onEdit,
-  onDelete,
-}: {
-  transaction: Transaction;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  return (
-    <div className="flex items-center justify-between p-4 transition-all hover:bg-gray-50 dark:hover:bg-gray-800/50">
-      <div className="flex items-center gap-3">
-        <div
-          className={`rounded-full p-2 ${
-            transaction.type === "income"
-              ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
-              : "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400"
-          }`}
-        >
-          {transaction.type === "income" ? (
-            <TrendingUp className="h-4 w-4" />
-          ) : (
-            <TrendingDown className="h-4 w-4" />
-          )}
-        </div>
-        <div>
-          <p className="font-medium text-gray-900 dark:text-white">
-            {transaction.note}
-          </p>
-          <p className="text-sm text-gray-500">
-            {format(new Date(transaction.date), "dd MMM yyyy", { locale: id })}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <span
-          className={`font-semibold ${
-            transaction.type === "income" ? "text-emerald-600" : "text-rose-600"
-          }`}
-        >
-          {transaction.type === "income" ? "+" : "-"} Rp{" "}
-          {transaction.amount.toLocaleString("id-ID")}
-        </span>
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onEdit}
-          >
-            <Edit2 className="h-4 w-4 text-gray-500" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onDelete}
-          >
-            <Trash2 className="h-4 w-4 text-red-500" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Main Dashboard Component
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filter, setFilter] = useState<FilterType>("thisMonth");
   const [customDate, setCustomDate] = useState<Date | undefined>();
-  // const [customDate, setCustomDate] = useState("");
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] =
