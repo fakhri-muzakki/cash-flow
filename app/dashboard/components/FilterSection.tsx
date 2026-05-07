@@ -11,6 +11,8 @@ import { Filter } from "lucide-react";
 import type { FilterType, Transaction } from "../type";
 import { useState } from "react";
 import { TransactionChart } from "./TransactionChart";
+import { exportToPDF } from "../utils/exportPDF";
+import { format } from "date-fns";
 
 interface FiterOptions {
   value: string;
@@ -24,6 +26,9 @@ interface FilterSectionProps {
   customDate: Date | undefined;
   filterOptions: FiterOptions[];
   transactions: Transaction[];
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
 }
 
 const FilterSection = ({
@@ -32,10 +37,24 @@ const FilterSection = ({
   setFilter,
   setCustomDate,
   customDate,
+  totalIncome,
+  totalExpense,
+  balance,
   filterOptions,
 }: FilterSectionProps) => {
   const [showChart, setShowChart] = useState(false);
 
+  const handleExportPDF = () => {
+    exportToPDF({
+      transactions, // data transaksi yang sudah difilter (tidak perlu filter ulang)
+      totalIncome,
+      totalExpense,
+      balance,
+      filter, // filter saat ini untuk judul periode
+      customDate, // untuk custom date
+      fileName: `laporan-${format(new Date(), "yyyy-MM-dd")}.pdf`,
+    });
+  };
   return (
     <>
       {showChart && (
@@ -69,7 +88,7 @@ const FilterSection = ({
 
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => setShowChart(!showChart)}>
-            {showChart ? "Sembunyikan Chart" : "Tampilkan Chart"}
+            {showChart ? "Tutup chart" : "Buka Chart"}
           </Button>
           <DatePicker
             value={customDate}
@@ -78,6 +97,9 @@ const FilterSection = ({
               setCustomDate(e);
             }}
           />
+          <Button variant="outline" onClick={handleExportPDF}>
+            Export PDF
+          </Button>
           {customDate && (
             <Button
               variant="ghost"

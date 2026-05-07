@@ -26,7 +26,6 @@ const filterOptions = [
   { value: "thisYear", label: "Tahun Ini" },
 ];
 
-// Main Dashboard Component
 export default function DashboardPage() {
   const { isHydrated } = useAuthStore();
   const {
@@ -90,9 +89,12 @@ export default function DashboardPage() {
           totalExpense={totalExpense}
           totalIncome={totalIncome}
         />
-
         {/* Filter Section */}
+
         <FilterSection
+          balance={balance}
+          totalExpense={totalExpense}
+          totalIncome={totalIncome}
           transactions={transactions}
           customDate={customDate}
           filterOptions={filterOptions}
@@ -100,7 +102,6 @@ export default function DashboardPage() {
           setCustomDate={setCustomDate}
           setFilter={setFilter}
         />
-
         {/* Transaction List with Infinite Scroll */}
         <div className="space-y-6">
           {groupedTransactions.length === 0 ? (
