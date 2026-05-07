@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/ModeToggle";
 import { Toaster } from "react-hot-toast";
+import QueryProvider from "@/components/query-provider";
 
 const bodyFont = Inter({
   subsets: ["latin"],
@@ -30,7 +31,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <QueryProvider>
+            {/* ... provider lain seperti ThemeProvider, AuthProvider */}
+            {children}
+          </QueryProvider>
 
           <ModeToggle />
           <Toaster

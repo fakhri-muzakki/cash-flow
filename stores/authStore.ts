@@ -17,12 +17,14 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isHydrated: boolean; // ← Tambahkan ini
 
   // Actions
   setAuth: (token: string, user: User) => void;
   clearAuth: () => void;
   updateBalance: (newBalance: number) => void;
   setIsLoading: (loading: boolean) => void;
+  setHydrated: (hydrated: boolean) => void; // ← Tambahkan ini
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -33,6 +35,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      isHydrated: false, // ← Tambahkan ini
 
       // Actions
       setAuth: (token: string, user: User) =>
@@ -57,14 +60,19 @@ export const useAuthStore = create<AuthState>()(
         })),
 
       setIsLoading: (loading: boolean) => set({ isLoading: loading }),
+
+      setHydrated: (hydrated: boolean) => set({ isHydrated: hydrated }), // ← Tambahkan ini
     }),
     {
-      name: "auth-storage", // key di localStorage
+      name: "auth-storage",
       partialize: (state) => ({
         token: state.token,
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-      }), // hanya persist state ini
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated(true); // ← Callback saat hydrasi selesai
+      },
     },
   ),
 );

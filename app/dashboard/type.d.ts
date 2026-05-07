@@ -7,3 +7,11 @@ export interface Transaction {
   note: string;
   date: string;
 }
+
+export type FilterType =
+  | "all"
+  | "today"
+  | "thisWeek"
+  | "thisMonth"
+  | "thisYear"
+  | "custom";
