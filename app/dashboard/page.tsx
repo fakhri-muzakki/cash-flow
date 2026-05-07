@@ -93,6 +93,7 @@ export default function DashboardPage() {
 
         {/* Filter Section */}
         <FilterSection
+          transactions={transactions}
           customDate={customDate}
           filterOptions={filterOptions}
           filter={filter}
