@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Filter } from "lucide-react";
+import { EyeOff, FileText, Filter, LineChart } from "lucide-react";
 import type { FilterType, Transaction } from "../type";
 import { useState } from "react";
 import { TransactionChart } from "./TransactionChart";
@@ -88,6 +88,11 @@ const FilterSection = ({
 
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => setShowChart(!showChart)}>
+            {showChart ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <LineChart className="h-4 w-4" />
+            )}
             {showChart ? "Tutup chart" : "Buka Chart"}
           </Button>
           <DatePicker
@@ -98,6 +103,7 @@ const FilterSection = ({
             }}
           />
           <Button variant="outline" onClick={handleExportPDF}>
+            <FileText className="h-4 w-4 " />
             Export PDF
           </Button>
           {customDate && (

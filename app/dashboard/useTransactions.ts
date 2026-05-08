@@ -32,7 +32,7 @@ const fetchTransactions = async ({
   page, // ← Tambahkan parameter
   limit, // ← Tambahkan parameter
 }: FetchTransactionsParams) => {
-  let url = "http://localhost:8080/api/transactions";
+  let url = `${process.env.NEXT_PUBLIC_API_URL}/api/transactions`;
   const params = new URLSearchParams();
 
   // ← TAMBAHKAN: Pagination params
@@ -115,14 +115,17 @@ const createTransaction = async ({
   note: string;
   date: string;
 }) => {
-  const response = await fetch("http://localhost:8080/api/transactions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/transactions`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ type, amount, note, date }),
     },
-    body: JSON.stringify({ type, amount, note, date }),
-  });
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -144,14 +147,17 @@ const updateTransactionAPI = async ({
   note: string;
   date: string;
 }) => {
-  const response = await fetch(`http://localhost:8080/api/transactions/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/transactions/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ amount, note, date }),
     },
-    body: JSON.stringify({ amount, note, date }),
-  });
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -167,12 +173,15 @@ const deleteTransactionAPI = async ({
   token: string;
   id: string;
 }) => {
-  const response = await fetch(`http://localhost:8080/api/transactions/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/transactions/${id}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     throw new Error("Gagal menghapus transaksi");
@@ -257,86 +266,29 @@ export function useTransactions() {
 
   const updateMutation = useMutation({
     mutationFn: updateTransactionAPI,
-    onMutate: async ({ id, amount, note, date }) => {
-      await queryClient.cancelQueries({
-        queryKey: ["transactions", filter, customDate],
-      });
-      const previousTransactions = queryClient.getQueryData([
-        "transactions",
-        filter,
-        customDate,
-      ]);
-      queryClient.setQueryData(
-        ["transactions", filter, customDate],
-        (old: Transaction[] | undefined) => {
-          if (!old) return [];
-          return old.map((transaction) =>
-            transaction.id === id
-              ? { ...transaction, amount, note, date }
-              : transaction,
-          );
-        },
-      );
-      return { previousTransactions };
-    },
-    onError: (error: Error, variables, context) => {
-      if (context?.previousTransactions) {
-        queryClient.setQueryData(
-          ["transactions", filter, customDate],
-          context.previousTransactions,
-        );
-      }
-      toast.error(error.message || "Gagal mengupdate transaksi");
-    },
     onSuccess: () => {
       toast.success("Transaksi berhasil diupdate");
-    },
-    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["transactions", filter, customDate],
       });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Gagal mengupdate transaksi");
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteTransactionAPI,
-    onMutate: async ({ id }) => {
-      await queryClient.cancelQueries({
-        queryKey: ["transactions", filter, customDate],
-      });
-      const previousTransactions = queryClient.getQueryData([
-        "transactions",
-        filter,
-        customDate,
-      ]);
-      queryClient.setQueryData(
-        ["transactions", filter, customDate],
-        (old: Transaction[] | undefined) => {
-          if (!old) return [];
-          return old.filter((transaction) => transaction.id !== id);
-        },
-      );
-      return { previousTransactions };
-    },
-    onError: (error: Error, variables, context) => {
-      if (context?.previousTransactions) {
-        queryClient.setQueryData(
-          ["transactions", filter, customDate],
-          context.previousTransactions,
-        );
-      }
-      toast.error(error.message || "Gagal menghapus transaksi");
-    },
     onSuccess: () => {
       toast.success("Transaksi berhasil dihapus");
-    },
-    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["transactions", filter, customDate],
       });
     },
+    onError: (error: Error) => {
+      toast.error(error.message || "Gagal menghapus transaksi");
+    },
   });
-
   // ==================== Wrapper functions ====================
   const addTransaction = (
     type: TransactionType,
