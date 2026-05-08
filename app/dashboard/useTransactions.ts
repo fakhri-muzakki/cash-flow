@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 import type { Transaction, TransactionType, FilterType } from "./type";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // ============================================================
 // 1. API Functions with filter parameters
@@ -199,6 +199,12 @@ export function useTransactions() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    if (isHydrated && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isHydrated, isAuthenticated, router]);
+
   // Filter state
   const [filter, setFilter] = useState<FilterType>("all");
   const [customDate, setCustomDate] = useState<Date | undefined>();
@@ -309,9 +315,6 @@ export function useTransactions() {
   };
 
   // ==================== Redirect ====================
-  if (isHydrated && !isAuthenticated) {
-    router.push("/login");
-  }
 
   const isLoading =
     isLoadingTransactions ||

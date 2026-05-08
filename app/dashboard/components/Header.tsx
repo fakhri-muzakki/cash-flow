@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Plus, TrendingDown, TrendingUp } from "lucide-react";
+import { LogoutButton } from "./LogoutButton";
 
 interface HeaderProps {
   setIsIncomeModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -52,6 +53,7 @@ const Header = ({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <LogoutButton />
           </div>
         </div>
       </div>
